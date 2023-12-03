@@ -12,6 +12,9 @@ outputName = "../structures/PfamSDB.tar"
 
 ConcatTars(files, outputName)
 
-os.system("rm ../structures/B*.tar")
-os.system("rm ../structures/B*.txt")
+files = [f"../structures/B{i}.tar" for i in range(1,FileNum+1)]
+outputName = "../structures/FLPSS.tar"
+ConcatTars(files, outputName)
+
+
 

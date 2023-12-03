@@ -2,6 +2,7 @@ import os
 from math import ceil
 
 def ConcatTars(files, outputFileName):
+
     level = 0
     while len(files)!= 1:
         NumOfBatches = ceil(len(files)/2)

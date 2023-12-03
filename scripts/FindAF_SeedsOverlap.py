@@ -1,5 +1,5 @@
-
-tmp = "./tmp"
+import sys
+tmp = sys.argv[1]
 file1add = f"{tmp}/AllAF_IDs.csv"
 file2add = f"{tmp}/JustIDsOfSeeds.csv"
 outputadd = f"{tmp}/SeedAFIntersection.tsv"

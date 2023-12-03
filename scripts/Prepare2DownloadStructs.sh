@@ -4,12 +4,16 @@ set -e
 mkdir -p logs
 mkdir -p tmp
 
-bash GetAllUnipStructsInAlphaDB.sh
+TMP="./tmp"
 
-python GetUnipIDsAndLocsFromPfamSeedsFile.py
+bash GetAllUnipStructsInAlphaDB.sh $TMP
 
-python FindAF_SeedsOverlap.py
+wget -P $TMP https://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.seed.gz
 
-python GetOneLineDescOfPfamSeeds.py
+zcat ${TMP}/Pfam-A.seed.gz | ./ProcessSeeds.py
 
-python ConvertUnipID2LinkAndGetReadyForDownloading.py $1
+python FindAF_SeedsOverlap.py $TMP
+
+python GetOneLineDescOfPfamSeeds.py $TMP
+
+python ConvertUnipID2LinkAndGetReadyForDownloading.py $1 $TMP

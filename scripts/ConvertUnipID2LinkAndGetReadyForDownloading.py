@@ -4,9 +4,9 @@ import os
 import sys
 from math import ceil
 
-tmp = "./tmp"
 
 NumOfBatch = int(sys.argv[1])
+tmp = sys.argv[2]
 
 count = sum(1 for _ in open(f"{tmp}/SeedAFIntersection.tsv"))
 file = open(f"{tmp}/SeedAFIntersection.tsv")

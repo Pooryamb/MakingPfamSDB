@@ -1,8 +1,8 @@
 import pandas as pd
-import os
+import sys
 
 
-tmp = "./tmp"
+tmp = sys.argv[1]
 
 PfCords = pd.read_csv(f"{tmp}/PfamSeedsTwoIDsAndLocs.tsv", sep="\t", header=None)
 PfamSeedsInAF = open(f"{tmp}/SeedAFIntersection.tsv").readlines()

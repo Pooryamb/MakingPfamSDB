@@ -9,6 +9,5 @@
 
 set -e
 
-batch=B$SLURM_ARRAY_TASK_ID
+python Concat_ChoppedAndRemoveExtra.py
 
-python CifChopperHandler.py ../structures/${batch}.tar ./tmp/${batch}_Cords.txt

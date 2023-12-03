@@ -8,7 +8,7 @@ set -e
 
 echo "Starting to download manifest files from AlphafoldDB"
 
-TMPpath="./tmp"
+TMPpath=$1
 gsutil -m cp \
   "gs://public-datasets-deepmind-alphafold-v4/manifests/manifest-model_v4_cif-part-*.csv" \
   $TMPpath

@@ -4,7 +4,7 @@
 #SBATCH --ntasks=1
 #SBATCH --mem=4G
 #SBATCH --cpus-per-task=4
-#SBATCH --time=4:00:00           # time (DD-HH:MM)
+#SBATCH --time=17:00:00           # time (DD-HH:MM)
 #SBATCH --output=logs/slurm-DownloadAndTar_%A_%a.out
 
 set -e
@@ -28,3 +28,5 @@ cd ../
 rm -r ${batch}
 
 python ../scripts/ExtractFastaFromTar.py ${batch}.tar
+
+tar -tf ${batch}.tar > ${batch}_list.txt

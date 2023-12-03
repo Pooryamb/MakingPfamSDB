@@ -1,53 +1,70 @@
 # To run this script, you must have extracted the amino acid sequence of the Pfam
 # Seeds, and then chop the regions where Pfam were predicted.
+from MapSeedLocsOnAF import map_coords_by_aln
+import re
+import sys
+tmp = sys.argv[1]
+fident_threshold_for_domain = 1
+pfam_flpss_processor = lambda header: header.strip().lstrip(">").split(".")[0]
+remove_first_char = lambda x:x[1:]
 
-
-
-def ReturnFastaDict(fileAdd):
+def ReturnFastaDict(fileAdd, header_processor):
     file = open(fileAdd)
     lines = file.read().strip().split("\n")
-    NumOfSeq = len(lines)//2
     SeqDict = {}
-    for i in range(NumOfSeq):
-        SeqDict[lines[2*i].strip(">")] = lines[2*i +1].upper()
+    for i in range(0,len(lines),2):
+        SeqDict[header_processor(lines[i])] = lines[i +1].upper()
     return SeqDict
 
-PfamSeeds = ReturnFastaDict("./tmp/PfamSeeds.fasta")
-PfamSeedsFL_AF = ReturnFastaDict("./tmp/FLPSS_AF.fasta")
+def returnseqid(seqid, start, end, pf):
+    return f"{seqid}_{start}_{end}_{pf}"
 
-PfamSeedsAF = {}
+def make_coords_data_numeric(CordsAndPFs):
+    NumCords = CordsAndPFs[:]
+    for i in range(0, len(CordsAndPFs),3):
+        NumCords[i] = int(NumCords[i])
+        NumCords[i+1] = int(NumCords[i+1])
+    return NumCords
 
-PfamCords = open("./tmp/PfamCordsOnSeedsOneLineFormat.tsv")
+pfamseeds = ReturnFastaDict(f"{tmp}/PfamSeeds.fasta", remove_first_char)
+FLPSS_PS = ReturnFastaDict(f"{tmp}/FLPSS_PS.fasta", pfam_flpss_processor)#PS is for PfamSeq
+FLPSS_AF = ReturnFastaDict(f"{tmp}/FLPSS_AF.fasta", remove_first_char)
+
+
+PfamCords = open(f"{tmp}/PfamCordsOnSeedsOneLineFormat.tsv")
+SeedLocationsOnAF = {}
+missing_domains = 0
+corrected_by_nw = 0
+
 for line in PfamCords:
     SeqID = line.split("\t")[0]
-    CordsAndPFs = line.strip().split("\t")[1].split(",")
-    NumOfParts = len(CordsAndPFs)//3
-    for i in range(NumOfParts):
-        start = int(CordsAndPFs[i*3])
-        end = int(CordsAndPFs[i*3 +1])
-        PF = CordsAndPFs[i*3 + 2]
-        PfamSeedsAF[SeqID + "_" + str(start) + "_" + str(end) + "_" + PF] = PfamSeedsFL_AF[SeqID][start-1:end]
+    CordsAndPFs = make_coords_data_numeric(line.strip().split("\t")[1].split(","))
+    coords = []
+
+    for i in range(0,len(CordsAndPFs),3):
+        start,end,PF = CordsAndPFs[i], CordsAndPFs[i + 1], CordsAndPFs[i + 2]
+        seed_id = returnseqid(SeqID, start, end, PF)
+
+        if FLPSS_AF[SeqID][start-1:end]==pfamseeds[seed_id]:
+            coords = coords + [start, end, PF]
+        else:
+            missing_domains +=1
+            if SeqID not in FLPSS_PS.keys():
+                start_af, end_af =-1,-1
+            else:
+                start_af, end_af, fident = map_coords_by_aln(FLPSS_PS[SeqID],FLPSS_AF[SeqID], start, end)
+            if start_af!=-1 and fident>=fident_threshold_for_domain:
+                coords = coords + [start_af, end_af, PF]
+                corrected_by_nw+=1
+    SeedLocationsOnAF[SeqID] = coords
+
 PfamCords.close()
 
+print(f"{missing_domains} domain sequences could not be used based on Pfam coordinates\n {corrected_by_nw} could be used after Needleman-Wunch alignment")
 
-DifferingSeqs = []
-for Prot in PfamSeedsAF.keys():
-    if PfamSeedsAF[Prot]!= PfamSeeds[Prot]:
-        DifferingSeqs.append(Prot)
-print("The number of different sequences is " + str(len(DifferingSeqs)))
+PfamCorrectedCords = open(f"{tmp}/PfamCordsOnSeedsOneLineFormatAFadj.tsv",'w')
+for SeqID in SeedLocationsOnAF:
+    domcoordinfo = ",".join([str(x) for x in SeedLocationsOnAF[SeqID]])
+    PfamCorrectedCords.write(SeqID + "\t" + domcoordinfo + "\n")
 
-PfamCords = open("./tmp/PfamCordsOnSeedsOneLineFormat.tsv")
-PfamCorrectedCords = open("./tmp/PfamCordsOnSeedsOneLineFormatAFadj.tsv",'w')
-for line in PfamCords:
-    SeqID = line.split("\t")[0]
-    CordsAndPFs = line.strip().split("\t")[1].split(",")
-    NumOfParts = len(CordsAndPFs)//3
-    NewSet = []
-    for i in range(NumOfParts):
-        ConCatName = "_".join([SeqID,CordsAndPFs[i*3],CordsAndPFs[i*3+1], CordsAndPFs[i*3+2] ])
-        if ConCatName not in DifferingSeqs:
-            NewSet = NewSet + [CordsAndPFs[i*3],CordsAndPFs[i*3+1], CordsAndPFs[i*3+2]]
-    PfamCorrectedCords.write(SeqID + "\t" + ",".join(NewSet) + "\n")
-    #PfamSeedsAF[SeqID + "_" + str(start) + "_" + str(end) + "_" + PF] = PfamSeedsFL_AF[SeqID][start-1:end]
 PfamCorrectedCords.close()
-PfamCords.close()
