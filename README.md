@@ -33,9 +33,8 @@ Instead of utilizing cif files of the structures, this method involves
 segmenting the Foldseek database along the domain borders. 
 This alternative technique can be executed using the `make pfamsdb_fscut` command
 
-
 To clean up and remove any intermediate files generated during the construction of 
-PfamSDB, you can use the `make clean` command:
+PfamSDB, you can use the `make clean` command.
 
 ## Cite Us
 
