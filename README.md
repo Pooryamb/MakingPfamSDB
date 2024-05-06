@@ -43,7 +43,7 @@ If you use PfamSDB or any associated tools in your research, please consider cit
 Borujeni PM, Salavati R. Functional domain annotation by structural similarity. NAR Genomics and Bioinformatics. 2024 Mar 1;6(1).
 
 BibTeX entry for LaTeX users:
-
+```bibtex
 @article{borujeni2024functional,
   title={Functional domain annotation by structural similarity},
   author={Borujeni, Poorya Mirzavand and Salavati, Reza},
